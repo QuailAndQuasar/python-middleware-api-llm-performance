@@ -79,3 +79,18 @@ This demonstrates how rate limiting protects the backend and LLM from overload o
    - Uncheck the "Enable Async Processing" checkbox to return to normal (synchronous) request/response behavior.
 
 This demonstrates how async processing allows the backend to remain responsive and handle multiple requests concurrently, even when LLM calls are slow.
+
+## Demonstrating Context Window Management
+
+1. **Adjust the Context Size Slider:**
+   - Use the "Context Size" slider in the frontend UI to select how many characters of your prompt are sent to the LLM (range: 50–1000 characters).
+2. **Submit a Prompt:**
+   - Enter a prompt and click "Send to LLM".
+   - The backend will only process up to the selected number of characters from your prompt.
+3. **Observe Response Time:**
+   - The frontend displays the response time for each request.
+   - Larger context sizes will result in longer simulated processing times (1s per 200 characters, minimum 1s, maximum 5s).
+4. **Experiment:**
+   - Try different context sizes and see how it affects the response time and the LLM's output.
+
+This demonstrates how managing the context window can impact LLM performance and user experience.

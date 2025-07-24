@@ -35,23 +35,31 @@ class QueryRequest(BaseModel):
     use_cache: bool = True
     use_rate_limit: bool = False
     use_async: bool = False
+    context_size: int = 200
 
-async def process_llm_task(task_id, prompt, use_cache):
-    # Simulate slow LLM
-    await asyncio.sleep(3)
+def get_delay_for_context(context_size):
+    # 1s per 200 chars, min 1s, max 5s
+    return min(max(1, context_size // 200), 5)
+
+async def process_llm_task(task_id, prompt, use_cache, context_size):
+    # Truncate prompt
+    truncated_prompt = prompt[:context_size]
+    # Simulate slow LLM based on context size
+    delay = get_delay_for_context(context_size)
+    await asyncio.sleep(delay)
     # Check cache
     cached = False
-    if use_cache and prompt in cache:
-        result = cache[prompt]
+    if use_cache and truncated_prompt in cache:
+        result = cache[truncated_prompt]
         cached = True
     else:
         # Call mock LLM
         async with httpx.AsyncClient() as client:
-            response = await client.post("http://localhost:8000/llm", json={"prompt": prompt})
+            response = await client.post("http://localhost:8000/llm", json={"prompt": truncated_prompt})
             data = response.json()
             result = data["response"]
             if use_cache:
-                cache[prompt] = result
+                cache[truncated_prompt] = result
     async_results[task_id] = {"status": "completed", "response": result, "cached": cached}
 
 @app.post("/query")
@@ -61,22 +69,28 @@ async def query_llm(request: Request, background_tasks: BackgroundTasks):
     use_cache = data.get("use_cache", True)
     use_rate_limit = data.get("use_rate_limit", False)
     use_async = data.get("use_async", False)
+    context_size = data.get("context_size", 200)
+    # Truncate prompt
+    truncated_prompt = prompt[:context_size]
     # Apply rate limiting if enabled
     if use_rate_limit:
         await limiter.limit("5/minute")(lambda req: None)(request)
     if use_async:
         task_id = str(uuid.uuid4())
         async_results[task_id] = {"status": "processing"}
-        background_tasks.add_task(process_llm_task, task_id, prompt, use_cache)
+        background_tasks.add_task(process_llm_task, task_id, prompt, use_cache, context_size)
         return JSONResponse(content={"status": "processing", "task_id": task_id})
-    if use_cache and prompt in cache:
-        return JSONResponse(content={"response": cache[prompt], "cached": True})
+    if use_cache and truncated_prompt in cache:
+        return JSONResponse(content={"response": cache[truncated_prompt], "cached": True})
+    # Simulate slow LLM based on context size
+    delay = get_delay_for_context(context_size)
+    await asyncio.sleep(delay)
     # Forward the prompt to the /llm endpoint (mock LLM)
     async with httpx.AsyncClient() as client:
-        response = await client.post("http://localhost:8000/llm", json={"prompt": prompt})
+        response = await client.post("http://localhost:8000/llm", json={"prompt": truncated_prompt})
         data = response.json()
         if use_cache:
-            cache[prompt] = data["response"]
+            cache[truncated_prompt] = data["response"]
         return JSONResponse(content={"response": data["response"], "cached": False})
 
 @app.get("/result/{task_id}")

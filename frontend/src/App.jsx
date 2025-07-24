@@ -9,9 +9,11 @@ function App() {
   const [useCache, setUseCache] = useState(true);
   const [useRateLimit, setUseRateLimit] = useState(false);
   const [useAsync, setUseAsync] = useState(false);
+  const [contextSize, setContextSize] = useState(200);
   const [cacheStatus, setCacheStatus] = useState(null); // 'hit' | 'miss' | null
+  const [responseTime, setResponseTime] = useState(null);
 
-  const pollForResult = async (taskId) => {
+  const pollForResult = async (taskId, startTime) => {
     let attempts = 0;
     while (attempts < 20) { // poll up to 20 times (about 10s)
       await new Promise(res => setTimeout(res, 500));
@@ -21,6 +23,7 @@ function App() {
         if (data.status === 'completed') {
           setResponse(data.response);
           setCacheStatus(data.cached === true ? 'hit' : 'miss');
+          setResponseTime(Date.now() - startTime);
           setLoading(false);
           return;
         }
@@ -37,11 +40,14 @@ function App() {
     setError('');
     setResponse('');
     setCacheStatus(null);
+    setResponseTime(null);
+    const truncatedPrompt = prompt.slice(0, contextSize);
+    const startTime = Date.now();
     try {
       const res = await fetch('http://localhost:8000/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, use_cache: useCache, use_rate_limit: useRateLimit, use_async: useAsync }),
+        body: JSON.stringify({ prompt: truncatedPrompt, use_cache: useCache, use_rate_limit: useRateLimit, use_async: useAsync, context_size: contextSize }),
       });
       if (res.status === 429) {
         setError('Rate limit exceeded. Please wait and try again.');
@@ -51,14 +57,14 @@ function App() {
       if (!res.ok) throw new Error('Network response was not ok');
       const data = await res.json();
       if (data.status === 'processing' && data.task_id) {
-        // Start polling for result
-        pollForResult(data.task_id);
+        pollForResult(data.task_id, startTime);
         return;
       }
       setResponse(data.response || JSON.stringify(data));
       if (data.cached === true) setCacheStatus('hit');
       else if (data.cached === false) setCacheStatus('miss');
       else setCacheStatus(null);
+      setResponseTime(Date.now() - startTime);
     } catch (err) {
       setError('Error: ' + err.message);
       setLoading(false);
@@ -78,6 +84,19 @@ function App() {
           rows={4}
           style={{ width: '100%' }}
         />
+        <br />
+        <label>
+          Context Size: {contextSize} characters
+          <input
+            type="range"
+            min={50}
+            max={1000}
+            step={50}
+            value={contextSize}
+            onChange={e => setContextSize(Number(e.target.value))}
+            style={{ width: '300px', marginLeft: 10 }}
+          />
+        </label>
         <br />
         <label>
           <input
@@ -114,6 +133,11 @@ function App() {
       {cacheStatus && (
         <div style={{ marginTop: 20, fontWeight: 'bold', color: cacheStatus === 'hit' ? 'green' : 'orange' }}>
           {cacheStatus === 'hit' ? 'Cache Hit' : 'Cache Miss'}
+        </div>
+      )}
+      {responseTime !== null && (
+        <div style={{ marginTop: 10 }}>
+          <strong>Response Time:</strong> {responseTime} ms
         </div>
       )}
       {response && (
