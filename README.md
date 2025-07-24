@@ -49,3 +49,17 @@ The React app will be available at `http://localhost:5173` (default Vite port).
    - Submitting any prompt (even repeated ones) will always show a **Cache Miss**.
 
 This demonstrates how caching improves performance by avoiding repeated LLM calls for the same prompt.
+
+## Demonstrating the Rate Limiting Mechanism
+
+1. **Enable Rate Limiting:**
+   - Check the "Enable Rate Limiting (5 req/min)" checkbox in the frontend UI.
+2. **Submit Prompts Rapidly:**
+   - Enter and submit prompts quickly (more than 5 times within a minute).
+   - After the 5th request, you will see a red error message: "Rate limit exceeded. Please wait and try again."
+3. **Wait and Retry:**
+   - Wait for about a minute and try again; the limit will reset and you can submit more prompts.
+4. **Disable Rate Limiting:**
+   - Uncheck the "Enable Rate Limiting" checkbox to remove the restriction and allow unlimited requests.
+
+This demonstrates how rate limiting protects the backend and LLM from overload or abuse.

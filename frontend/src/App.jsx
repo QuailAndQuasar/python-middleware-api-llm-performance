@@ -7,6 +7,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [useCache, setUseCache] = useState(true);
+  const [useRateLimit, setUseRateLimit] = useState(false);
   const [cacheStatus, setCacheStatus] = useState(null); // 'hit' | 'miss' | null
 
   const handleSubmit = async (e) => {
@@ -19,8 +20,12 @@ function App() {
       const res = await fetch('http://localhost:8000/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, use_cache: useCache }),
+        body: JSON.stringify({ prompt, use_cache: useCache, use_rate_limit: useRateLimit }),
       });
+      if (res.status === 429) {
+        setError('Rate limit exceeded. Please wait and try again.');
+        return;
+      }
       if (!res.ok) throw new Error('Network response was not ok');
       const data = await res.json();
       setResponse(data.response || JSON.stringify(data));
@@ -53,6 +58,15 @@ function App() {
             onChange={e => setUseCache(e.target.checked)}
           />
           Enable Caching
+        </label>
+        <br />
+        <label>
+          <input
+            type="checkbox"
+            checked={useRateLimit}
+            onChange={e => setUseRateLimit(e.target.checked)}
+          />
+          Enable Rate Limiting (5 req/min)
         </label>
         <br />
         <button type="submit" disabled={loading || !prompt.trim()}>
