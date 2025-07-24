@@ -33,3 +33,19 @@ The React app will be available at `http://localhost:5173` (default Vite port).
 ## Usage
 - The frontend will connect to the backend at `http://localhost:8000` (default FastAPI port).
 - You can submit prompts and see the mock LLM responses.
+
+## Demonstrating the Caching Mechanism
+
+1. **Enable Caching:**
+   - Make sure the "Enable Caching" checkbox is checked in the frontend UI.
+2. **Submit a Prompt:**
+   - Enter a prompt and click "Send to LLM".
+   - The first submission will show a **Cache Miss** (orange indicator).
+3. **Submit the Same Prompt Again:**
+   - Submit the exact same prompt a second time.
+   - The response will now show a **Cache Hit** (green indicator), meaning the result was served instantly from the backend cache.
+4. **Disable Caching:**
+   - Uncheck the "Enable Caching" checkbox.
+   - Submitting any prompt (even repeated ones) will always show a **Cache Miss**.
+
+This demonstrates how caching improves performance by avoiding repeated LLM calls for the same prompt.
