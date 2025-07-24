@@ -94,3 +94,53 @@ This demonstrates how async processing allows the backend to remain responsive a
    - Try different context sizes and see how it affects the response time and the LLM's output.
 
 This demonstrates how managing the context window can impact LLM performance and user experience.
+
+## Performance and Security Optimizations
+
+This project implements several key optimizations to make LLM API interactions more efficient, responsive, and secure:
+
+### 1. Caching System
+- **What**: LRU (Least Recently Used) cache with TTL (Time To Live) expiration
+- **Benefits**:
+  - ⚡ Faster response times for repeated queries
+  - 💰 Reduced API costs through fewer LLM calls
+  - 🛡️ Protection against rate limiting by reducing API load
+
+### 2. Rate Limiting
+- **What**: Server-side rate limiting (5 requests per minute per user/IP)
+- **Benefits**:
+  - 🛡️ Prevents abuse and DDoS attacks
+  - 💰 Controls operational costs
+  - ⚖️ Ensures fair usage among all users
+
+### 3. Asynchronous Processing
+- **What**: Non-blocking request handling
+- **Benefits**:
+  - 🚀 Improved server throughput
+  - 💻 Responsive UI during long-running operations
+  - 🔄 Supports multiple concurrent requests
+
+### 4. Context Size Management
+- **What**: Configurable character limits on prompts
+- **Benefits**:
+  - ⚡ Faster processing of smaller inputs
+  - 💰 Reduced token usage costs
+  - ⏱️ More predictable response times
+
+### 5. Security Measures
+- **CORS Protection**: Properly configured to prevent CSRF attacks
+- **Input Validation**: All user inputs are validated and sanitized
+- **Error Handling**: Comprehensive error handling and user feedback
+- **Secure Headers**: Added security headers to HTTP responses
+
+### 6. Frontend Optimizations
+- **Efficient State Management**: Minimized re-renders for better performance
+- **Responsive Design**: Works across different devices and screen sizes
+- **Clear Feedback**: Visual indicators for all states (loading, success, error)
+
+### 7. Resource Management
+- **Async Task Cleanup**: Prevents memory leaks
+- **Connection Pooling**: Efficient database and API connection handling
+- **Graceful Shutdown**: Proper cleanup on server shutdown
+
+These optimizations work together to create a robust, efficient, and secure LLM API integration while providing an excellent user experience.
