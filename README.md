@@ -1,38 +1,80 @@
 # Python Middleware API LLM Performance Demo
 
-## Backend (FastAPI)
+A demonstration of performance-optimized LLM API interactions with features like caching, rate limiting, and async processing.
 
-1. Create and activate the virtual environment:
+## Prerequisites
+
+- Python 3.8+
+- Node.js 16+ (for frontend)
+- npm or yarn (for frontend dependencies)
+
+## Quick Start
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/python-middleware-api-llm-performance.git
+cd python-middleware-api-llm-performance
+```
+
+### 2. Backend Setup (FastAPI)
+
+1. Navigate to the backend directory and set up a virtual environment:
    ```bash
    cd backend
    python3 -m venv venv
-   source venv/bin/activate
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+2. Install Python dependencies:
+   ```bash
+   pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
-2. Run the FastAPI server:
+3. Start the FastAPI development server:
    ```bash
    uvicorn main:app --reload
    ```
+   - The API will be available at `http://localhost:8000`
+   - API documentation (Swagger UI) at `http://localhost:8000/docs`
 
-## Frontend (React)
+### 3. Frontend Setup (React)
 
-1. Install dependencies:
+1. In a new terminal, navigate to the frontend directory:
    ```bash
-   cd frontend
+   cd ../frontend
+   ```
+
+2. Install Node.js dependencies:
+   ```bash
    npm install
    ```
 
-2. Start the development server:
+3. Start the development server:
    ```bash
    npm run dev
    ```
+   - The React app will open in your default browser at `http://localhost:5173`
 
-The React app will be available at `http://localhost:5173` (default Vite port).
+## Verifying the Setup
 
-## Usage
-- The frontend will connect to the backend at `http://localhost:8000` (default FastAPI port).
-- You can submit prompts and see the mock LLM responses.
+1. The frontend should automatically connect to the backend at `http://localhost:8000`
+2. Try submitting a prompt in the web interface
+3. Check the console logs in your browser's developer tools for any connection issues
+
+## Default Ports
+
+- Frontend: `http://localhost:5173` (Vite dev server)
+- Backend API: `http://localhost:8000` (FastAPI)
+- API Documentation: `http://localhost:8000/docs`
+
+## Troubleshooting
+
+- If you get port conflicts, you can change the ports:
+  - Backend: Modify the `uvicorn` command in `package.json`
+  - Frontend: Update `vite.config.js`
+- Ensure both backend and frontend servers are running simultaneously for full functionality
+- If you encounter dependency issues, try deleting `node_modules` and `package-lock.json` (frontend) or `venv` (backend) and reinstalling
 
 ## Demonstrating the Caching Mechanism
 
