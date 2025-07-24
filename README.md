@@ -63,3 +63,19 @@ This demonstrates how caching improves performance by avoiding repeated LLM call
    - Uncheck the "Enable Rate Limiting" checkbox to remove the restriction and allow unlimited requests.
 
 This demonstrates how rate limiting protects the backend and LLM from overload or abuse.
+
+## Demonstrating Async Processing
+
+1. **Enable Async Processing:**
+   - Check the "Enable Async Processing" checkbox in the frontend UI.
+2. **Submit a Prompt:**
+   - Enter a prompt and click "Send to LLM".
+   - The frontend will show "Processing asynchronously..." while the backend processes the request in the background (simulated 3-second delay).
+   - When the result is ready, it will appear automatically.
+3. **Submit Multiple Prompts Quickly:**
+   - Try submitting several prompts in quick succession.
+   - Each will be processed in the background, and the frontend will update as results are ready.
+4. **Disable Async Processing:**
+   - Uncheck the "Enable Async Processing" checkbox to return to normal (synchronous) request/response behavior.
+
+This demonstrates how async processing allows the backend to remain responsive and handle multiple requests concurrently, even when LLM calls are slow.

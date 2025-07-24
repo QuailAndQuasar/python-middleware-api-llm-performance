@@ -8,7 +8,28 @@ function App() {
   const [error, setError] = useState('');
   const [useCache, setUseCache] = useState(true);
   const [useRateLimit, setUseRateLimit] = useState(false);
+  const [useAsync, setUseAsync] = useState(false);
   const [cacheStatus, setCacheStatus] = useState(null); // 'hit' | 'miss' | null
+
+  const pollForResult = async (taskId) => {
+    let attempts = 0;
+    while (attempts < 20) { // poll up to 20 times (about 10s)
+      await new Promise(res => setTimeout(res, 500));
+      const res = await fetch(`http://localhost:8000/result/${taskId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === 'completed') {
+          setResponse(data.response);
+          setCacheStatus(data.cached === true ? 'hit' : 'miss');
+          setLoading(false);
+          return;
+        }
+      }
+      attempts++;
+    }
+    setError('Async processing timed out.');
+    setLoading(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,22 +41,29 @@ function App() {
       const res = await fetch('http://localhost:8000/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, use_cache: useCache, use_rate_limit: useRateLimit }),
+        body: JSON.stringify({ prompt, use_cache: useCache, use_rate_limit: useRateLimit, use_async: useAsync }),
       });
       if (res.status === 429) {
         setError('Rate limit exceeded. Please wait and try again.');
+        setLoading(false);
         return;
       }
       if (!res.ok) throw new Error('Network response was not ok');
       const data = await res.json();
+      if (data.status === 'processing' && data.task_id) {
+        // Start polling for result
+        pollForResult(data.task_id);
+        return;
+      }
       setResponse(data.response || JSON.stringify(data));
       if (data.cached === true) setCacheStatus('hit');
       else if (data.cached === false) setCacheStatus('miss');
       else setCacheStatus(null);
     } catch (err) {
       setError('Error: ' + err.message);
-    } finally {
       setLoading(false);
+    } finally {
+      if (!useAsync) setLoading(false);
     }
   };
 
@@ -69,8 +97,17 @@ function App() {
           Enable Rate Limiting (5 req/min)
         </label>
         <br />
+        <label>
+          <input
+            type="checkbox"
+            checked={useAsync}
+            onChange={e => setUseAsync(e.target.checked)}
+          />
+          Enable Async Processing
+        </label>
+        <br />
         <button type="submit" disabled={loading || !prompt.trim()}>
-          {loading ? 'Querying...' : 'Send to LLM'}
+          {loading ? (useAsync ? 'Processing asynchronously...' : 'Querying...') : 'Send to LLM'}
         </button>
       </form>
       {error && <div style={{ color: 'red', marginTop: 10 }}>{error}</div>}
